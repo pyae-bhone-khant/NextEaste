@@ -6,6 +6,7 @@ import { FaHome } from "react-icons/fa"
 import { HiOutlineMenuAlt3 } from "react-icons/hi"
 import { IoClose, IoLogInOutline } from "react-icons/io5"
 import { useState } from "react"
+import { useAuthModal } from "@/store/useAuthModelStore"
 
 
 interface NavbarProps {
@@ -17,6 +18,7 @@ const navLinks = ["Home", "Properties", "MarketPlace"]
 export default function Navbar({ variant = "transparent" }: NavbarProps) {
     const [isOpen, setIsOpen] = useState(false);
     const isTransparent = variant === "transparent"
+    const {openLogin} = useAuthModal()
 
     return (
         <section className={`top-0 left-0 z-50 w-full ${isTransparent ? "absolute" : "sticky border-b  border-black/5 bg-card"}`} >
@@ -41,7 +43,7 @@ export default function Navbar({ variant = "transparent" }: NavbarProps) {
                     </div>
 
                     <div className="hidden lg:flex items-center gap-4 ">
-                        <Button variant="outline">
+                        <Button onClick={openLogin} variant="outline">
                             Login
                         </Button>
                         <Button icon={<FaHome />} variant="outline">
@@ -77,7 +79,7 @@ export default function Navbar({ variant = "transparent" }: NavbarProps) {
                                 ))}
                             </div>
                             <div className={`mt-4 grid grid-cols-2 gap-3 border-t pt-4 ${isTransparent ? "border-white/10" : "border-black/5"}`}>
-                                <Button icon={<IoLogInOutline size={18} />} variant="outline" fullWidth>
+                                <Button onClick={openLogin} icon={<IoLogInOutline size={18} />} variant="outline" fullWidth>
                                     Login
                                 </Button>
                                 <Button icon={<FaHome size={16} />} variant="primary" fullWidth>
