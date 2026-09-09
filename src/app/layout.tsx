@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Register from "@/components/modals/Register";
 import LoginModel from "@/components/modals/LoginModal";
+import CreatePropertityModal from "@/components/modals/CreatePropertityModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {children} 
         <Register />
         <LoginModel />
+        <CreatePropertityModal />
         </body>
     </html>
   );
