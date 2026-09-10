@@ -4,6 +4,7 @@ import "./globals.css";
 import Register from "@/components/modals/Register";
 import LoginModel from "@/components/modals/LoginModal";
 import CreatePropertityModal from "@/components/modals/CreatePropertityModal";
+import FilterModal from "@/components/modals/FilterModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Register />
         <LoginModel />
         <CreatePropertityModal />
+        <FilterModal />
         </body>
     </html>
   );

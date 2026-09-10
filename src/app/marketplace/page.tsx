@@ -1,10 +1,11 @@
 import Footer from "@/components/general/Footer";
 import FrontendLayout from "@/components/layouts/FrontendLayout";
+import FilterButton from "@/components/marketPlace/FilterButton";
 import Navbar from "@/components/navbar/Navbar";
 import Button from "@/components/ui/Button";
 import { dummyProperties } from "@/constants/dummyProperties";
 import PropertyCard from "@/properties/PropertityCard";
-import { HiOutlineAdjustmentsHorizontal } from "react-icons/hi2";
+
 
 
 export default function MarketPlace () {
@@ -16,7 +17,7 @@ export default function MarketPlace () {
                     <h2 className="text-2xl font-bold text-text md:text-3xl">
                         Explore
                     </h2> 
-                    <Button variant="outline" icon={<HiOutlineAdjustmentsHorizontal size={20} />}>Filter</Button>
+                    <FilterButton />
                 </div>
 
             <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3  my-4 ">
