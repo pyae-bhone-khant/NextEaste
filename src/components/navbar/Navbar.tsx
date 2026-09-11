@@ -2,14 +2,17 @@
 
 import Link from "next/link"
 import Button from "../ui/Button"
-import { FaHome } from "react-icons/fa"
+import ThemeToggle from "../ui/ThemeToggle"
+import UserMenu from "./UserMenu"
 import { HiOutlineMenuAlt3 } from "react-icons/hi"
 import { IoClose, IoLogInOutline } from "react-icons/io5"
+import { FaHome } from "react-icons/fa"
 import { useState } from "react"
 import { useAuthModal } from "@/store/useAuthModelStore"
 import { useCreatePropertyModalStore } from "@/store/createPropertyModalStore"
-import { signOut, useSession } from "@/lib/auth-client"
-import { useRouter, usePathname } from "next/navigation"
+import { useSession } from "@/lib/auth-client"
+import { usePathname } from "next/navigation"
+import clsx from "clsx"
 
 interface NavbarProps {
     variant: "transparent" | "solid"
@@ -23,55 +26,59 @@ const navLinks = [
 ]
 
 export default function Navbar({ variant = "transparent" }: NavbarProps) {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false)
     const isTransparent = variant === "transparent"
     const pathname = usePathname()
-    const {open : openCreateModel} = useCreatePropertyModalStore()
-    const {openLogin} = useAuthModal()
-    const {data : session , isPending } = useSession()
-
-    const router = useRouter()
+    const { open: openCreateModal } = useCreatePropertyModalStore()
+    const { openLogin } = useAuthModal()
+    const { data: session, isPending } = useSession()
 
     // Returns true when the link's href matches the current page
     const isActive = (href: string) =>
         href === "/" ? pathname === "/" : pathname.startsWith(href)
 
-    const handleLogout = async () => {
-         await signOut()
-         router.refresh()
-    }
-
     return (
-        <section className={`top-0 left-0 z-50 w-full ${isTransparent ? "absolute" : "sticky border-b  border-black/5 bg-card"}`} >
+        <section
+            className={clsx(
+                "top-0 left-0 z-50 w-full",
+                isTransparent ? "absolute" : "sticky border-b border-border bg-card"
+            )}
+        >
             <div className="mx-auto max-w-7xl px-6 lg:px-12">
-                <nav className={`relative flex h-20 items-center justify-between 
-                    ${isTransparent ? "mt-6 rounded-3xl border border-white/10 bg-white/5 px-6 backdrop-blur-2xl" :
-                        "px-0"}
-                     `}>
-                    <Link href={'/'} className="flex items-center text-2xl font-semibold ">
-                        <span className={isTransparent ? "text-gray-300 " : "text-text"}>
+                <nav
+                    className={clsx(
+                        "relative flex h-20 items-center justify-between",
+                        isTransparent
+                            ? "mt-6 rounded-3xl border border-white/10 bg-white/5 px-6 backdrop-blur-2xl"
+                            : "px-0"
+                    )}
+                >
+                    {/* ── Logo ─────────────────────────────────────────── */}
+                    <Link href="/" className="flex items-center gap-0.5 text-2xl font-bold">
+                        <span className={isTransparent ? "text-white/90" : "text-text"}>
                             Next
                         </span>
-                        <span className="bg-primary text-white px-2 py-1 rounded-tr-2xl rounded-bl-2xl">
+                        <span className="bg-primary text-white px-2 py-0.5 rounded-tr-xl rounded-bl-xl leading-tight">
                             Estate
                         </span>
                     </Link>
 
-                    <div className="hidden items-center gap-8 lg:flex">
+                    {/* ── Desktop nav links ────────────────────────────── */}
+                    <div className="hidden items-center gap-7 lg:flex">
                         {navLinks.map(({ label, href }) => {
                             const active = isActive(href)
                             return (
                                 <Link
                                     key={href}
                                     href={href}
-                                    className={`relative text-sm font-semibold transition-colors duration-200
-                                        ${ active
+                                    className={clsx(
+                                        "relative text-sm font-semibold transition-colors duration-200",
+                                        active
                                             ? "text-primary"
                                             : isTransparent
                                                 ? "text-white/70 hover:text-white"
-                                                : "text-text/55 hover:text-text"
-                                        }`
-                                    }
+                                                : "text-text-muted hover:text-text"
+                                    )}
                                 >
                                     {label}
                                     {/* active underline pill */}
@@ -83,40 +90,69 @@ export default function Navbar({ variant = "transparent" }: NavbarProps) {
                         })}
                     </div>
 
-                    <div className="hidden lg:flex items-center gap-4 "> 
-                        {session ? ( 
-                             <Button onClick={handleLogout} variant="outline">
-                            Logout   
-                        </Button>
-                        ) : ( 
-                             <Button onClick={openLogin} variant="outline">
-                            Login  
-                        </Button>
-                        )} 
+                    {/* ── Desktop right-side actions ───────────────────── */}
+                    <div className="hidden lg:flex items-center gap-3">
+                        {/* Theme toggle */}
+                        <ThemeToggle variant={isTransparent ? "light-bg" : "default"} />
 
-                        {!isPending && session && (    
-                        <Button onClick={openCreateModel} icon={<FaHome />} variant="outline">
-                            Add Property
-                        </Button>
+                        {!isPending && (
+                            session ? (
+                                /* Logged in: avatar dropdown */
+                                <UserMenu isTransparent={isTransparent} />
+                            ) : (
+                                /* Logged out: sign-in button */
+                                <button
+                                    id="navbar-sign-in"
+                                    onClick={openLogin}
+                                    className={clsx(
+                                        "group relative flex h-10 items-center gap-2 overflow-hidden rounded-xl px-5 text-sm font-semibold transition-all duration-200 cursor-pointer",
+                                        isTransparent
+                                            ? "border border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                                            : "border border-primary/30 bg-primary/8 text-primary hover:bg-primary hover:text-white"
+                                    )}
+                                >
+                                    <IoLogInOutline size={16} className="shrink-0" />
+                                    Sign In
+                                </button>
+                            )
                         )}
                     </div>
-                    {/* mobile menu */}
-                    <button aria-label={isOpen ? "Close menu" : "Open menu"} className={`flex h-11 w-11 items-center justify-center rounded-2xl transition lg:hidden ${isTransparent ? "border border-white/10 bg-white/5 text-white" : "border border-black/10 bg-background text-text"}`
 
-                    } onClick={() => setIsOpen(!isOpen)} >
-                        {isOpen ? <IoClose size={24} /> : <HiOutlineMenuAlt3 size={24} />}
-                    </button>
+                    {/* ── Mobile hamburger ─────────────────────────────── */}
+                    <div className="flex items-center gap-2 lg:hidden">
+                        <ThemeToggle variant={isTransparent ? "light-bg" : "default"} />
+                        <button
+                            aria-label={isOpen ? "Close menu" : "Open menu"}
+                            className={clsx(
+                                "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200",
+                                isTransparent
+                                    ? "border border-white/15 bg-white/8 text-white hover:bg-white/15"
+                                    : "border border-border bg-card text-text hover:border-primary hover:text-primary"
+                            )}
+                            onClick={() => setIsOpen(!isOpen)}
+                        >
+                            {isOpen ? <IoClose size={22} /> : <HiOutlineMenuAlt3 size={22} />}
+                        </button>
+                    </div>
 
-                    {/* mobile menu */}
+                    {/* ── Mobile menu panel ────────────────────────────── */}
                     {isOpen && (
-                        <div className={`absolute left-0 right-0 top-full mt-3 overflow-hidden rounded-3xl border p-4 shadow-2xl backdrop-blur-2xl lg:hidden ${
-                            isTransparent ? "border-white/10 bg-secondary/95 text-white" : "border-black/5 bg-white text-text"
-                        }`}>
-                            <div className="mb-3 flex items-center justify-between px-2 text-xs font-semibold uppercase tracking-[0.2em] opacity-50">
+                        <div
+                            className={clsx(
+                                "absolute left-0 right-0 top-full mt-3 overflow-hidden rounded-2xl border p-4 shadow-2xl backdrop-blur-2xl lg:hidden",
+                                isTransparent
+                                    ? "border-white/10 bg-secondary/95 text-white"
+                                    : "border-border bg-card text-text"
+                            )}
+                        >
+                            {/* Section label */}
+                            <div className="mb-3 flex items-center justify-between px-2 text-xs font-semibold uppercase tracking-widest opacity-40">
                                 <span>Explore</span>
                                 <span>Menu</span>
                             </div>
-                            <div className="space-y-1">
+
+                            {/* Links */}
+                            <div className="space-y-0.5">
                                 {navLinks.map(({ label, href }) => {
                                     const active = isActive(href)
                                     return (
@@ -124,35 +160,75 @@ export default function Navbar({ variant = "transparent" }: NavbarProps) {
                                             key={href}
                                             href={href}
                                             onClick={() => setIsOpen(false)}
-                                            className={`flex min-h-12 items-center gap-3 rounded-2xl px-4 text-base font-semibold transition-all duration-200
-                                                ${ active
+                                            className={clsx(
+                                                "flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-semibold transition-all duration-150",
+                                                active
                                                     ? "bg-primary/10 text-primary"
                                                     : isTransparent
                                                         ? "text-white/70 hover:bg-white/10 hover:text-white"
-                                                        : "text-text/60 hover:bg-background hover:text-text"
-                                                }`
-                                            }
+                                                        : "text-text-muted hover:bg-background hover:text-text"
+                                            )}
                                         >
-                                            {/* active dot indicator */}
-                                            <span className={`h-1.5 w-1.5 shrink-0 rounded-full transition-all ${ active ? "bg-primary" : "bg-transparent" }`} />
+                                            <span
+                                                className={clsx(
+                                                    "h-1.5 w-1.5 shrink-0 rounded-full transition-all",
+                                                    active ? "bg-primary" : "bg-transparent"
+                                                )}
+                                            />
                                             {label}
                                         </Link>
                                     )
                                 })}
                             </div>
-                            <div className={`mt-4 grid grid-cols-2 gap-3 border-t pt-4 ${isTransparent ? "border-white/10" : "border-black/5"}`}>
-                                {session ? (
-                                    <Button onClick={handleLogout} icon={<IoLogInOutline size={18} />} variant="outline" fullWidth>
-                                        Logout
-                                    </Button>
-                                ) : (
-                                    <Button onClick={openLogin} icon={<IoLogInOutline size={18} />} variant="outline" fullWidth>
-                                        Login
-                                    </Button>
+
+                            {/* Mobile actions */}
+                            <div
+                                className={clsx(
+                                    "mt-4 border-t pt-4 space-y-2",
+                                    isTransparent ? "border-white/10" : "border-border"
                                 )}
+                            >
+                                {/* Logged-in mobile view */}
                                 {!isPending && session && (
-                                    <Button onClick={openCreateModel} icon={<FaHome size={16} />} variant="primary" fullWidth>
-                                        Add Property
+                                    <>
+                                        {/* Mini user card */}
+                                        <div className={clsx(
+                                            "flex items-center gap-3 rounded-xl px-3 py-2.5",
+                                            isTransparent ? "bg-white/5" : "bg-background"
+                                        )}>
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white text-xs font-bold shrink-0">
+                                                {session.user.name?.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className={clsx("truncate text-sm font-semibold", isTransparent ? "text-white" : "text-text")}>
+                                                    {session.user.name}
+                                                </p>
+                                                <p className={clsx("truncate text-xs", isTransparent ? "text-white/60" : "text-text-muted")}>
+                                                    {session.user.email}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <Button
+                                            onClick={() => { setIsOpen(false); openCreateModal(); }}
+                                            icon={<FaHome size={14} />}
+                                            variant="outline"
+                                            fullWidth
+                                        >
+                                            Add Property
+                                        </Button>
+                                    </>
+                                )}
+
+                                {/* Logged-out mobile view */}
+                                {!isPending && !session && (
+                                    <Button
+                                        onClick={() => { setIsOpen(false); openLogin(); }}
+                                        icon={<IoLogInOutline size={16} />}
+                                        variant="primary"
+                                        fullWidth
+                                    >
+                                        Sign In
                                     </Button>
                                 )}
                             </div>
