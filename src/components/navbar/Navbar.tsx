@@ -8,8 +8,8 @@ import { IoClose, IoLogInOutline } from "react-icons/io5"
 import { useState } from "react"
 import { useAuthModal } from "@/store/useAuthModelStore"
 import { useCreatePropertyModalStore } from "@/store/createPropertyModalStore"
-
-
+import { signOut, useSession } from "@/lib/auth-client"
+import { useRouter } from "next/navigation"
 interface NavbarProps {
     variant: "transparent" | "solid"
 }
@@ -21,6 +21,14 @@ export default function Navbar({ variant = "transparent" }: NavbarProps) {
     const isTransparent = variant === "transparent"
     const {open : openCreateModel} = useCreatePropertyModalStore()
     const {openLogin} = useAuthModal()
+    const {data : session , isPending } = useSession() 
+
+    const router = useRouter() 
+
+    const handleLogout = async () => {
+         await signOut()
+         router.refresh()
+    }
 
     return (
         <section className={`top-0 left-0 z-50 w-full ${isTransparent ? "absolute" : "sticky border-b  border-black/5 bg-card"}`} >
@@ -44,13 +52,22 @@ export default function Navbar({ variant = "transparent" }: NavbarProps) {
                         ))}
                     </div>
 
-                    <div className="hidden lg:flex items-center gap-4 ">
-                        <Button onClick={openLogin} variant="outline">
-                            Login
+                    <div className="hidden lg:flex items-center gap-4 "> 
+                        {session ? ( 
+                             <Button onClick={handleLogout} variant="outline">
+                            Logout   
                         </Button>
+                        ) : ( 
+                             <Button onClick={openLogin} variant="outline">
+                            Login  
+                        </Button>
+                        )} 
+
+                        {!isPending && session && (    
                         <Button onClick={openCreateModel} icon={<FaHome />} variant="outline">
                             Add Property
                         </Button>
+                        )}
                     </div>
                     {/* mobile menu */}
                     <button aria-label={isOpen ? "Close menu" : "Open menu"} className={`flex h-11 w-11 items-center justify-center rounded-2xl transition lg:hidden ${isTransparent ? "border border-white/10 bg-white/5 text-white" : "border border-black/10 bg-background text-text"}`
@@ -81,12 +98,20 @@ export default function Navbar({ variant = "transparent" }: NavbarProps) {
                                 ))}
                             </div>
                             <div className={`mt-4 grid grid-cols-2 gap-3 border-t pt-4 ${isTransparent ? "border-white/10" : "border-black/5"}`}>
-                                <Button onClick={openLogin} icon={<IoLogInOutline size={18} />} variant="outline" fullWidth>
-                                    Login
-                                </Button>
-                                <Button onClick={openCreateModel} icon={<FaHome size={16} />} variant="primary" fullWidth>
-                                    Add Property
-                                </Button>
+                                {session ? (
+                                    <Button onClick={handleLogout} icon={<IoLogInOutline size={18} />} variant="outline" fullWidth>
+                                        Logout
+                                    </Button>
+                                ) : (
+                                    <Button onClick={openLogin} icon={<IoLogInOutline size={18} />} variant="outline" fullWidth>
+                                        Login
+                                    </Button>
+                                )}
+                                {!isPending && session && (
+                                    <Button onClick={openCreateModel} icon={<FaHome size={16} />} variant="primary" fullWidth>
+                                        Add Property
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     )}

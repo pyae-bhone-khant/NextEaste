@@ -22,10 +22,10 @@ export default function ImageUplode({preview , onChange} :  ImageUploadProps) {
           </>
        )} 
        {preview && (
-        <Image src={preview} alt="preview" fill className="object-cover  rounded-2xl" />
+        <Image src={preview} alt="preview" fill sizes="100vw" className="object-cover  rounded-2xl" />
        )}
 </label> 
-<input  type="file" id="image-upload"  accept="images/*" onChange={handleUpload}  className="hidden" />
+<input  type="file" id="image-upload"  accept="image/*" onChange={handleUpload}  className="hidden" />
         </div>
     )
 }

@@ -5,7 +5,7 @@ import Register from "@/components/modals/Register";
 import LoginModel from "@/components/modals/LoginModal";
 import CreatePropertityModal from "@/components/modals/CreatePropertityModal";
 import FilterModal from "@/components/modals/FilterModal";
-
+import { Toaster } from "sonner";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -33,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <LoginModel />
         <CreatePropertityModal />
         <FilterModal />
+        <Toaster />
         </body>
     </html>
   );

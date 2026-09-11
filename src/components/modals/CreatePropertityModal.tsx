@@ -8,6 +8,9 @@ import PropertyTypeCard from "./PropertyTypeCard";
 import Input from "../ui/Input";
 import Counter from "../property/Counter";
 import ImageUplode from "../property/ImageUplode";
+import axios from "axios";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const STEPS = {
   TYPE: 0,
@@ -34,6 +37,7 @@ export default function CreatePropertityModal() {
   const [preview, setPreview] = useState<null | string>(null);
   const [listingType, setListingType] = useState<"rent" | "sale">("sale");
   const [price, setPrice] = useState("");
+  const router = useRouter()
 
   const stepTitle = () => {
     switch (step) {
@@ -55,8 +59,41 @@ export default function CreatePropertityModal() {
   }
   const { isOpen, close } = useCreatePropertyModalStore();
   const createListing = async () => {
-    setLoading(true)
-    try {
+    try { 
+      setLoading(true) 
+
+      const fromData = new FormData();
+
+
+      fromData.append("title" , title) 
+      fromData.append("description" , description) 
+      fromData.append("location" , location) 
+      fromData.append("address" , address) 
+      fromData.append("bedrooms" , bedrooms.toString()) 
+      fromData.append("bathrooms" , bathrooms.toString()) 
+      fromData.append("parkingSpaces" , parkingSpaces.toString()) 
+      fromData.append("area" , area) 
+      fromData.append("listingType" , listingType) 
+      fromData.append("price" , price) 
+      fromData.append("propertyType" , propertyType) 
+      // fromData.append("image" , image as File) 
+      if (image) {
+        fromData.append("image" , image)
+      }  
+
+      await axios.post("/api/properties", fromData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      })
+     toast.success("Property created successfully")
+     router.replace("/properties")
+     handleClose()
+    }  catch (error) {
+      if(axios.isAxiosError(error)) {
+         toast.error(error.response?.data.message || "Something went wrong")
+         return ; 
+      }
     } finally {
       setLoading(false)
     }
@@ -65,7 +102,25 @@ export default function CreatePropertityModal() {
   const handleChange = (file: File) => {
     setImage(file);
     setPreview(URL.createObjectURL(file))
+  } 
+   
+  const  handleClose = () => {
+    setTitle("");
+    setDescription("");
+    setLocation("");
+    setAddress("");
+    setBedrooms(0);
+    setBathrooms(0);
+    setParkingSpaces(0);
+    setArea("");
+    setListingType("rent");
+    setPrice("");
+    setImage(null);
+    setPreview("");
+    setStep(0);
+    close();
   }
+
   return (
     <Modal onClose={close} isOpen={isOpen} title="create a new listing ">
       <div className="mb-6 flex items-center justify-between text-sm text-gray-500">
@@ -131,9 +186,9 @@ export default function CreatePropertityModal() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setTitle(e.target.value)
               } />
-            <Input name="description" label="Description" value=
+            <Input as="textarea" name="description" label="Description" value=
               {description} onChange={(e: React.
-                ChangeEvent<HTMLInputElement>) =>
+                ChangeEvent<HTMLTextAreaElement>) =>
                 setDescription(e.target.value)
               } />
           </div>
@@ -160,7 +215,13 @@ export default function CreatePropertityModal() {
         {step > STEPS.TYPE && (
           <Button fullWidth variant="outline" onClick={() => setStep((prev) => prev - 1)}>Back</Button>
         )}
-        <Button fullWidth onClick={() => step < STEPS.PRICING ? setStep((prev) => prev + 1) : createListing()} loading={loading} >
+        <Button fullWidth onClick={() => {
+          if (step === STEPS.TYPE && !propertyType) {
+            toast.error("Please select a property type")
+            return
+          }
+          step < STEPS.PRICING ? setStep((prev) => prev + 1) : createListing()
+        }} loading={loading} >
           {step === STEPS.PRICING ? "Create Listing " : "Next"}
         </Button>
       </div>

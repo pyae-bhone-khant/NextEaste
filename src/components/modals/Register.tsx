@@ -6,6 +6,10 @@ import { useState } from "react";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 import { FcGoogle } from "react-icons/fc";
+import { toast } from "sonner";
+import { signUp } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { email } from "better-auth";
 
 interface RegisterValues {
     name: string
@@ -27,7 +31,10 @@ export default function Register() {
     const { openLogin, isRegisterOpen, closeRegister } = useAuthModal();
     const [values, setValues] = useState(initialValues)
     const [errors, setErrors] = useState<RegisterErrors>({})
-
+    const [loading, setLoading] = useState(false)
+   
+    const router = useRouter()
+     
     function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
         const { name, value } = event.target
         setValues((currentValues) => ({ ...currentValues, [name]: value }))
@@ -49,6 +56,34 @@ export default function Register() {
         setErrors(nextErrors)
         return Object.keys(nextErrors).length === 0
     }
+    
+    const onSumit = async  (e : React.SubmitEvent) => {
+       e.preventDefault() ; 
+       if(!validate()) return;
+
+       try {
+        setLoading(true) 
+
+        const {error } = await signUp.email({
+            name : values.name , 
+            email : values.email , 
+            password : values.password
+        })
+        
+        if (error) {    
+            toast.error(error.message as string)
+            return
+        }
+        toast.success(" Registration completed successfully")
+        router.refresh() 
+        setValues({name : "" , email : "" , password : "" , confirmPassword : ""})
+        closeRegister()
+       } catch (error) { 
+          toast.error(error instanceof Error ? error.message : "Somethig want wrong please try again")
+       } finally {
+            setLoading(false)
+       }
+    }
 
     return (
         <Modal onClose={closeRegister} title="Create account" isOpen={isRegisterOpen}>
@@ -58,10 +93,7 @@ export default function Register() {
                 <p className="text-sm leading-6 text-text/55">Save properties and make your next move easier.</p>
             </div>
 
-            <form className="space-y-4" onSubmit={(event) => {
-                event.preventDefault()
-                validate()
-            }}>
+            <form  onSubmit={onSumit} className="space-y-4">
                 <Input
                     id="register-name"
                     name="name"
@@ -101,7 +133,7 @@ export default function Register() {
                     error={errors.confirmPassword}
                     required
                 />
-                <Button fullWidth type="submit">Create account</Button>
+                <Button fullWidth type="submit" loading={loading}>Create account</Button>
             </form>
 
             <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.16em] text-gray-400">

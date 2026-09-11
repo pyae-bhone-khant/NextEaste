@@ -6,14 +6,19 @@ import { useState } from "react";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 import { FcGoogle } from "react-icons/fc";
+import { signIn } from "@/lib/auth-client";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function LoginModel() {
     const { isLoginOpen, closeLogin, openRegister } = useAuthModal();
+    const [loading, setLoading] = useState(false)
+    const router = useRouter()
     const [value, setValue] = useState<LoginValues>({
         email: "",
         password: ""
     })
-    const loading = false
+   
     const [errors, setErrors] = useState<LoginErrors>({})
 
     interface LoginValues {
@@ -56,7 +61,34 @@ export default function LoginModel() {
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0;
 
-    }
+    } 
+
+     const onSumit = async  (e : React.SubmitEvent) => {
+           e.preventDefault() ; 
+           if(!validate()) return;
+    
+           try {
+            setLoading(true) 
+    
+            const {error } = await signIn.email({
+                email : value.email , 
+                password : value.password
+            })
+            
+            if (error) {    
+                toast.error(error.message as string)
+                return
+            }
+            toast.success("Login successful")
+            router.refresh() 
+            setValue({email : "" , password : ""})
+            closeLogin()
+           } catch (error) { 
+              toast.error(error instanceof Error ? error.message : "Somethig want wrong please try again")
+           } finally {
+                setLoading(false)
+           }
+        }
     return (
         <Modal onClose={closeLogin} title="Account access" isOpen={isLoginOpen}>
             <div className="mb-7 space-y-2">
@@ -64,10 +96,7 @@ export default function LoginModel() {
                 <h2 className="text-3xl font-semibold tracking-tight text-text">Sign in to NextEstate</h2>
                 <p className="text-sm leading-6 text-text/55">Continue your property search and saved listings.</p>
             </div>
-            <form className="space-y-5" onSubmit={(event) => {
-                event.preventDefault()
-                validate()
-            }}>
+            <form className="space-y-5" onSubmit={onSumit}>
                 <Input
                     id="login-email"
                     name="email"

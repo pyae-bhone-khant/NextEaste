@@ -11,7 +11,7 @@ export default function PropertyCard({property} : PropertyCardProps) {
     return (
       <Link href={`property/${property.id}`} className="group relative  h-125 overflow-hidden rounded-4xl ">
            <div className="w-full h-full relative ">
-                 <Image src={property.image} alt={property.title} fill  className="inset-0 object-cover transition  duration-700  group-hover:scale-110" />
+                 <Image src={property.image} alt={property.title} fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" className="inset-0 object-cover transition  duration-700  group-hover:scale-110" />
                  {/* dark over lay  */} 
                  <div  className=" absolute inset-0  bg-linear-to-t from-black/90 via-black/20 to-transparent" />
                  {/* top badge  */} 
