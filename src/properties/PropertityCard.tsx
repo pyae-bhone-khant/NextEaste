@@ -41,7 +41,7 @@ export default function PropertyCard({property} : PropertyCardProps) {
                   <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/70">
                     <span>{property.bedrooms} beds</span>
                     <span>{property.bathrooms} baths</span>
-                    <span>{property.area.toLocaleString()} sq ft</span>
+                    <span>{property.area == null ? "Area unavailable" : `${property.area.toLocaleString()} sq ft`}</span>
                   </div>
                 </div>
            </div> 

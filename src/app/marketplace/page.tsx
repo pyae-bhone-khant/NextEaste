@@ -2,7 +2,6 @@ import Footer from "@/components/general/Footer";
 import FrontendLayout from "@/components/layouts/FrontendLayout";
 import FilterButton from "@/components/marketPlace/FilterButton";
 import Navbar from "@/components/navbar/Navbar";
-import Button from "@/components/ui/Button";
 import { dummyProperties } from "@/constants/dummyProperties";
 import PropertyCard from "@/properties/PropertityCard";
 
