@@ -4,24 +4,25 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
-import { Role } from "@prisma/client";
+
+type UserRole = "USER" | "ADMIN";
 
 interface User {
   id: string;
   name: string;
   email: string;
-  role: Role;
+  role: UserRole;
   createdAt: Date;
   _count: { properties: number };
 }
 
 export default function AdminUserRow({ user }: { user: User }) {
   const router = useRouter();
-  const [role, setRole] = useState<Role>(user.role);
+  const [role, setRole] = useState<UserRole>(user.role);
   const [updating, setUpdating] = useState(false);
 
   async function toggleRole() {
-    const newRole = role === Role.ADMIN ? Role.USER : Role.ADMIN;
+    const newRole = role === "ADMIN" ? "USER" : "ADMIN";
     try {
       setUpdating(true);
       await axios.patch(`/api/admin/users/${user.id}`, { role: newRole });
@@ -58,7 +59,7 @@ export default function AdminUserRow({ user }: { user: User }) {
         </span>
       </td>
       <td className="px-5 py-4">
-        <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${role === Role.ADMIN ? "bg-primary/10 text-primary" : "border border-black/10 text-text/50"}`}>
+        <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${role === "ADMIN" ? "bg-primary/10 text-primary" : "border border-black/10 text-text/50"}`}>
           {role}
         </span>
       </td>
@@ -68,12 +69,12 @@ export default function AdminUserRow({ user }: { user: User }) {
           onClick={toggleRole}
           disabled={updating}
           className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${
-            role === Role.ADMIN
+            role === "ADMIN"
               ? "border border-red-200 bg-red-50 text-red-500 hover:bg-red-100"
               : "border border-primary/25 bg-primary/10 text-primary hover:bg-primary/20"
           }`}
         >
-          {updating ? "…" : role === Role.ADMIN ? "Revoke Admin" : "Make Admin"}
+          {updating ? "…" : role === "ADMIN" ? "Revoke Admin" : "Make Admin"}
         </button>
       </td>
     </tr>
