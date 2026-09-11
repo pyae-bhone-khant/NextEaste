@@ -4,6 +4,7 @@ import SearchBox from "@/components/home/SearchBox";
 import FrontendLayout from "@/components/layouts/FrontendLayout";
 import Navbar from "@/components/navbar/Navbar";
 
+export const dynamic = 'force-dynamic'
 
 export default function Home() {
   return (

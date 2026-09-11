@@ -2,13 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
 import { FiUsers, FiHome, FiTrendingUp, FiDollarSign } from "react-icons/fi";
 
+export const dynamic = 'force-dynamic'
+
 async function getStats() {
-  const [totalUsers, totalProperties, forSale, forRent] = await prisma.$transaction([
-    prisma.user.count(),
-    prisma.property.count(),
-    prisma.property.count({ where: { listingType: "sale" } }),
-    prisma.property.count({ where: { listingType: "rent" } }),
-  ]);
+  const totalUsers = await prisma.user.count();
+  const totalProperties = await prisma.property.count();
+  const forSale = await prisma.property.count({ where: { listingType: "sale" } });
+  const forRent = await prisma.property.count({ where: { listingType: "rent" } });
   return { totalUsers, totalProperties, forSale, forRent };
 }
 

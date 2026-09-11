@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import AdminUserRow from "@/components/admin/AdminUserRow";
 
+export const dynamic = 'force-dynamic'
+
 async function getAllUsers() {
   return prisma.user.findMany({
     orderBy: { createdAt: "desc" },

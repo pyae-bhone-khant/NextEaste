@@ -11,6 +11,8 @@ import ActiveFilters from "@/components/marketPlace/ActiveFilters";
 import SortSelect from "@/components/marketPlace/SortSelect";
 import { Suspense } from "react";
 
+export const dynamic = 'force-dynamic'
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface SearchParams {
   search?:   string;

@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import AdminPropertyRow from "@/components/admin/AdminPropertyRow";
 
+export const dynamic = 'force-dynamic'
+
 async function getAllProperties() {
   return prisma.property.findMany({
     orderBy: { createdAt: "desc" },

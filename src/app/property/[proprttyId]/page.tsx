@@ -9,6 +9,8 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { FaMapMarkedAlt, FaBed, FaBath, FaCar, FaRulerCombined } from "react-icons/fa";
 
+export const dynamic = 'force-dynamic'
+
 async function getProperty(id: string) {
   return prisma.property.findUnique({
     where: { id },

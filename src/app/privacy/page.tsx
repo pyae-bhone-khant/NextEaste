@@ -2,6 +2,8 @@ import Link from "next/link";
 import FrontendLayout from "@/components/layouts/FrontendLayout";
 import Navbar from "@/components/navbar/Navbar";
 
+export const dynamic = 'force-dynamic'
+
 const sections = [
     { id: "information", title: "Information we collect" },
     { id: "use", title: "How we use information" },

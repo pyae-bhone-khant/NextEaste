@@ -7,6 +7,8 @@ import Link from "next/link";
 import UserPropertyCard from "@/components/property/UserPropertyCard";
 import { Property } from "@/types/property";
 
+export const dynamic = 'force-dynamic'
+
 export default function PropertiesPage() {
   return (
     <FrontendLayout>

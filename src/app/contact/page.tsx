@@ -1,6 +1,8 @@
 import FrontendLayout from "@/components/layouts/FrontendLayout";
 import Navbar from "@/components/navbar/Navbar";
 
+export const dynamic = 'force-dynamic'
+
 export default function ContactPage() {
     return (
         <FrontendLayout>
