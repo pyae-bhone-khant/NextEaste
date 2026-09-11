@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import getCurrentUser from "@/sever-action/get-CurrentUser";
 import { CloudinaryUploadResult, uploadToCloudinary } from "@/service/cloudinary";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma";
 
 // GET /api/properties
 // Query params:
