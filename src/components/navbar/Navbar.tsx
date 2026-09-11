@@ -9,21 +9,32 @@ import { useState } from "react"
 import { useAuthModal } from "@/store/useAuthModelStore"
 import { useCreatePropertyModalStore } from "@/store/createPropertyModalStore"
 import { signOut, useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
+
 interface NavbarProps {
     variant: "transparent" | "solid"
 }
 
-const navLinks = ["Home", "Properties", "MarketPlace"]
+const navLinks = [
+    { label: "Home",        href: "/"            },
+    { label: "Marketplace", href: "/marketplace" },
+    { label: "Properties",  href: "/properties"  },
+    { label: "About",       href: "/about"       },
+]
 
 export default function Navbar({ variant = "transparent" }: NavbarProps) {
     const [isOpen, setIsOpen] = useState(false);
     const isTransparent = variant === "transparent"
+    const pathname = usePathname()
     const {open : openCreateModel} = useCreatePropertyModalStore()
     const {openLogin} = useAuthModal()
-    const {data : session , isPending } = useSession() 
+    const {data : session , isPending } = useSession()
 
-    const router = useRouter() 
+    const router = useRouter()
+
+    // Returns true when the link's href matches the current page
+    const isActive = (href: string) =>
+        href === "/" ? pathname === "/" : pathname.startsWith(href)
 
     const handleLogout = async () => {
          await signOut()
@@ -46,10 +57,30 @@ export default function Navbar({ variant = "transparent" }: NavbarProps) {
                         </span>
                     </Link>
 
-                    <div className="hidden items-center gap-8 lg:flex ">
-                        {navLinks.map((item) => (
-                            <Link key={item} href={item === "Home" ? "/" : `${item.toLowerCase()}`} className={`text-sm font-medium transition hover:text-primary ${isTransparent ? "text-white/80" : "text-text/70"}`}>{item}</Link>
-                        ))}
+                    <div className="hidden items-center gap-8 lg:flex">
+                        {navLinks.map(({ label, href }) => {
+                            const active = isActive(href)
+                            return (
+                                <Link
+                                    key={href}
+                                    href={href}
+                                    className={`relative text-sm font-semibold transition-colors duration-200
+                                        ${ active
+                                            ? "text-primary"
+                                            : isTransparent
+                                                ? "text-white/70 hover:text-white"
+                                                : "text-text/55 hover:text-text"
+                                        }`
+                                    }
+                                >
+                                    {label}
+                                    {/* active underline pill */}
+                                    {active && (
+                                        <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-primary" />
+                                    )}
+                                </Link>
+                            )
+                        })}
                     </div>
 
                     <div className="hidden lg:flex items-center gap-4 "> 
@@ -86,16 +117,28 @@ export default function Navbar({ variant = "transparent" }: NavbarProps) {
                                 <span>Menu</span>
                             </div>
                             <div className="space-y-1">
-                                {navLinks.map((item) => (
-                                    <Link
-                                        key={item}
-                                        href={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-                                        onClick={() => setIsOpen(false)}
-                                        className="flex min-h-12 items-center rounded-2xl px-4 text-base font-medium transition hover:bg-primary hover:text-white"
-                                    >
-                                        {item}
-                                    </Link>
-                                ))}
+                                {navLinks.map(({ label, href }) => {
+                                    const active = isActive(href)
+                                    return (
+                                        <Link
+                                            key={href}
+                                            href={href}
+                                            onClick={() => setIsOpen(false)}
+                                            className={`flex min-h-12 items-center gap-3 rounded-2xl px-4 text-base font-semibold transition-all duration-200
+                                                ${ active
+                                                    ? "bg-primary/10 text-primary"
+                                                    : isTransparent
+                                                        ? "text-white/70 hover:bg-white/10 hover:text-white"
+                                                        : "text-text/60 hover:bg-background hover:text-text"
+                                                }`
+                                            }
+                                        >
+                                            {/* active dot indicator */}
+                                            <span className={`h-1.5 w-1.5 shrink-0 rounded-full transition-all ${ active ? "bg-primary" : "bg-transparent" }`} />
+                                            {label}
+                                        </Link>
+                                    )
+                                })}
                             </div>
                             <div className={`mt-4 grid grid-cols-2 gap-3 border-t pt-4 ${isTransparent ? "border-white/10" : "border-black/5"}`}>
                                 {session ? (
