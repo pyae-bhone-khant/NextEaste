@@ -5,7 +5,7 @@ import Navbar from "@/components/navbar/Navbar";
 import PropertyCard from "@/properties/PropertityCard";
 import { prisma } from "@/lib/prisma";
 import { Property } from "@/types/property";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma";
 import MarketplaceSearchBar from "@/components/marketPlace/MarketplaceSearchBar";
 import ActiveFilters from "@/components/marketPlace/ActiveFilters";
 import SortSelect from "@/components/marketPlace/SortSelect";

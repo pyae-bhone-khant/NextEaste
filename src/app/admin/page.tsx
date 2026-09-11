@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Role } from "@prisma/client";
+import { Role } from "@/generated/prisma";
 import { FiUsers, FiHome, FiTrendingUp, FiDollarSign } from "react-icons/fi";
 
 export const dynamic = 'force-dynamic'

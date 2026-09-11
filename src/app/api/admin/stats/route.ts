@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { Role } from "@prisma/client";
+import { Role } from "@/generated/prisma";
 
 async function getAdminUser() {
   const session = await auth.api.getSession({ headers: await headers() });

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { FiHome, FiList, FiUsers, FiBarChart2 } from "react-icons/fi";
-import { Role } from "@prisma/client";
+import { Role } from "@/generated/prisma";
 
 async function requireAdmin() {
   const session = await auth.api.getSession({ headers: await headers() });
