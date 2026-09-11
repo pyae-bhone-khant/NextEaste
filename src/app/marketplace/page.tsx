@@ -54,20 +54,19 @@ async function getProperties(params: SearchParams): Promise<{ properties: Proper
       sort === "price_desc" ? { price:     "desc" } :
                               { createdAt: "desc" };
 
-    const [properties, total] = await prisma.$transaction([
-      prisma.property.findMany({
-        where,
-        orderBy,
-        select: {
-          id: true, title: true, description: true,
-          location: true, address: true, price: true,
-          type: true, propertyType: true, listingType: true,
-          status: true, bedrooms: true, bathrooms: true,
-          area: true, image: true, createdAt: true,
-        },
-      }),
-      prisma.property.count({ where }),
-    ]);
+    const properties = await prisma.property.findMany({
+      where,
+      orderBy,
+      select: {
+        id: true, title: true, description: true,
+        location: true, address: true, price: true,
+        type: true, propertyType: true, listingType: true,
+        status: true, bedrooms: true, bathrooms: true,
+        area: true, image: true, createdAt: true,
+      },
+    });
+
+    const total = await prisma.property.count({ where });
 
     return { properties, total };
   } catch (error) {

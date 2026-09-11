@@ -56,31 +56,30 @@ export async function GET(req: NextRequest) {
       sort === "price_desc" ? { price:     "desc" } :
                               { createdAt: "desc" };   // newest (default)
 
-    const [properties, total] = await prisma.$transaction([
-      prisma.property.findMany({
-        where,
-        orderBy,
-        take: limit,
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          location: true,
-          address: true,
-          price: true,
-          type: true,
-          propertyType: true,
-          listingType: true,
-          status: true,
-          bedrooms: true,
-          bathrooms: true,
-          area: true,
-          image: true,
-          createdAt: true,
-        },
-      }),
-      prisma.property.count({ where }),
-    ]);
+    const properties = await prisma.property.findMany({
+      where,
+      orderBy,
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        address: true,
+        price: true,
+        type: true,
+        propertyType: true,
+        listingType: true,
+        status: true,
+        bedrooms: true,
+        bathrooms: true,
+        area: true,
+        image: true,
+        createdAt: true,
+      },
+    });
+
+    const total = await prisma.property.count({ where });
 
     return NextResponse.json({ properties, total }, { status: 200 });
   } catch (error) {
