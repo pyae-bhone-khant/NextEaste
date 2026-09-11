@@ -2,6 +2,92 @@ import { NextRequest, NextResponse } from "next/server";
 import getCurrentUser from "@/sever-action/get-CurrentUser";
 import { CloudinaryUploadResult, uploadToCloudinary } from "@/service/cloudinary";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+
+// GET /api/properties
+// Query params:
+//   search     — keyword (title / location / address)
+//   type       — propertyType slug  (house | villa | apartment …)
+//   listing    — listingType        (sale | rent)
+//   minPrice   — minimum price (inclusive)
+//   maxPrice   — maximum price (inclusive)
+//   minBeds    — minimum bedrooms
+//   sort       — newest (default) | oldest | price_asc | price_desc
+//   limit      — max results (default 6, max 50)
+export async function GET(req: NextRequest) {
+  try {
+    const sp = req.nextUrl.searchParams;
+    const search   = sp.get("search")?.trim()   ?? "";
+    const type     = sp.get("type")?.trim()     ?? "";
+    const listing  = sp.get("listing")?.trim()  ?? "";
+    const minPrice = sp.get("minPrice")?.trim() ?? "";
+    const maxPrice = sp.get("maxPrice")?.trim() ?? "";
+    const minBeds  = sp.get("minBeds")?.trim()  ?? "";
+    const sort     = sp.get("sort")?.trim()     ?? "newest";
+    const limit    = Math.min(Number(sp.get("limit") ?? 6), 50);
+
+    const where: Prisma.PropertyWhereInput = {
+      AND: [
+        // keyword
+        search
+          ? {
+              OR: [
+                { title:    { contains: search, mode: "insensitive" } },
+                { location: { contains: search, mode: "insensitive" } },
+                { address:  { contains: search, mode: "insensitive" } },
+              ],
+            }
+          : {},
+        // property type
+        type ? { propertyType: { equals: type, mode: "insensitive" } } : {},
+        // listing type (sale / rent)
+        listing ? { listingType: { equals: listing, mode: "insensitive" } } : {},
+        // price range
+        minPrice ? { price: { gte: Number(minPrice) } } : {},
+        maxPrice ? { price: { lte: Number(maxPrice) } } : {},
+        // bedrooms
+        minBeds ? { bedrooms: { gte: Number(minBeds) } } : {},
+      ],
+    };
+
+    const orderBy: Prisma.PropertyOrderByWithRelationInput =
+      sort === "oldest"     ? { createdAt: "asc"  } :
+      sort === "price_asc"  ? { price:     "asc"  } :
+      sort === "price_desc" ? { price:     "desc" } :
+                              { createdAt: "desc" };   // newest (default)
+
+    const [properties, total] = await prisma.$transaction([
+      prisma.property.findMany({
+        where,
+        orderBy,
+        take: limit,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          location: true,
+          address: true,
+          price: true,
+          type: true,
+          propertyType: true,
+          listingType: true,
+          status: true,
+          bedrooms: true,
+          bathrooms: true,
+          area: true,
+          image: true,
+          createdAt: true,
+        },
+      }),
+      prisma.property.count({ where }),
+    ]);
+
+    return NextResponse.json({ properties, total }, { status: 200 });
+  } catch (error) {
+    console.error("[GET /api/properties]:", error);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+  }
+}
 
 export async function POST(req : NextRequest) {
   try { 
