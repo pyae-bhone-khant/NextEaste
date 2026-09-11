@@ -2,9 +2,11 @@
 
 import { useSession, signOut } from "@/lib/auth-client"
 import { useCreatePropertyModalStore } from "@/store/createPropertyModalStore"
+import { useEditProfileModalStore } from "@/store/useEditProfileModalStore"
+import { useUserProfileStore } from "@/store/useUserProfileStore"
 import { useRouter } from "next/navigation"
 import { useRef, useState, useEffect } from "react"
-import { FaHome, FaUser } from "react-icons/fa"
+import { FaHome, FaUser, FaPen } from "react-icons/fa"
 import { IoLogOutOutline, IoCamera } from "react-icons/io5"
 import { toast } from "sonner"
 import axios from "axios"
@@ -19,21 +21,31 @@ interface UserMenuProps {
 export default function UserMenu({ isTransparent = false }: UserMenuProps) {
     const { data: session } = useSession()
     const { open: openCreateModal } = useCreatePropertyModalStore()
+    const { open: openEditProfile } = useEditProfileModalStore()
+    const { profile, init, update, clear } = useUserProfileStore()
     const router = useRouter()
 
     const [open, setOpen] = useState(false)
-    const [avatarSrc, setAvatarSrc] = useState<string | null>(session?.user?.image ?? null)
     const [uploading, setUploading] = useState(false)
 
     const menuRef = useRef<HTMLDivElement>(null)
     const fileRef = useRef<HTMLInputElement>(null)
 
-    // Keep avatar in sync when session changes
+    // Seed the store from session once logged in; clear it on logout
     useEffect(() => {
-        setAvatarSrc(session?.user?.image ?? null)
-    }, [session?.user?.image])
+        if (session?.user) {
+            init({
+                name:  session.user.name  ?? "User",
+                email: session.user.email ?? "",
+                image: session.user.image ?? null,
+            })
+        } else {
+            clear()
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session?.user?.id])
 
-    // Close on outside click
+    // Close dropdown on outside click
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -46,6 +58,7 @@ export default function UserMenu({ isTransparent = false }: UserMenuProps) {
 
     const handleLogout = async () => {
         setOpen(false)
+        clear()
         await signOut()
         router.refresh()
     }
@@ -56,7 +69,7 @@ export default function UserMenu({ isTransparent = false }: UserMenuProps) {
 
         // Optimistic preview
         const preview = URL.createObjectURL(file)
-        setAvatarSrc(preview)
+        update({ image: preview })
 
         try {
             setUploading(true)
@@ -66,23 +79,22 @@ export default function UserMenu({ isTransparent = false }: UserMenuProps) {
             const res = await axios.patch<{ image: string }>("/api/user/avatar", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             })
-            setAvatarSrc(res.data.image)
+            // Commit the real Cloudinary URL
+            update({ image: res.data.image })
             toast.success("Profile photo updated!")
         } catch {
-            // Revert on error
-            setAvatarSrc(session?.user?.image ?? null)
+            // Revert to session image
+            update({ image: session?.user?.image ?? null })
             toast.error("Failed to upload photo. Please try again.")
         } finally {
             setUploading(false)
-            // Reset input so the same file can be re-selected
             if (fileRef.current) fileRef.current.value = ""
         }
     }
 
-    if (!session?.user) return null
+    if (!session?.user || !profile) return null
 
-    const name = session.user.name ?? "User"
-    const email = session.user.email ?? ""
+    const { name, email, image } = profile
     const initials = name
         .split(" ")
         .map((n) => n[0])
@@ -92,7 +104,7 @@ export default function UserMenu({ isTransparent = false }: UserMenuProps) {
 
     return (
         <div ref={menuRef} className="relative">
-            {/* Avatar trigger button */}
+            {/* ── Avatar trigger button ─────────────────────────────── */}
             <button
                 id="user-menu-trigger"
                 aria-label="Open user menu"
@@ -105,28 +117,25 @@ export default function UserMenu({ isTransparent = false }: UserMenuProps) {
                         : "ring-primary/30 ring-offset-background hover:ring-primary/60"
                 )}
             >
-                {avatarSrc ? (
+                {image ? (
                     <Image
-                        src={avatarSrc}
+                        src={image}
                         alt={name}
                         fill
                         className="object-cover"
                         sizes="40px"
-                        unoptimized={avatarSrc.startsWith("blob:")}
+                        unoptimized={image.startsWith("blob:")}
                     />
                 ) : (
                     <span
                         className={clsx(
                             "flex h-full w-full items-center justify-center text-sm font-bold",
-                            isTransparent
-                                ? "bg-white/15 text-white"
-                                : "bg-primary text-white"
+                            isTransparent ? "bg-white/15 text-white" : "bg-primary text-white"
                         )}
                     >
                         {initials}
                     </span>
                 )}
-                {/* Uploading spinner overlay */}
                 {uploading && (
                     <span className="absolute inset-0 flex items-center justify-center bg-black/50">
                         <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -134,7 +143,7 @@ export default function UserMenu({ isTransparent = false }: UserMenuProps) {
                 )}
             </button>
 
-            {/* Dropdown panel */}
+            {/* ── Dropdown panel ────────────────────────────────────── */}
             <div
                 className={clsx(
                     "absolute right-0 top-full mt-3 w-64 overflow-hidden rounded-2xl border shadow-2xl",
@@ -147,20 +156,19 @@ export default function UserMenu({ isTransparent = false }: UserMenuProps) {
             >
                 {/* User info header */}
                 <div className="relative flex items-center gap-3 px-4 py-4 border-b border-border">
-                    {/* Avatar + camera overlay */}
                     <button
                         aria-label="Change profile photo"
                         onClick={() => fileRef.current?.click()}
                         className="group relative h-12 w-12 shrink-0 rounded-full overflow-hidden ring-2 ring-primary/20 cursor-pointer"
                     >
-                        {avatarSrc ? (
+                        {image ? (
                             <Image
-                                src={avatarSrc}
+                                src={image}
                                 alt={name}
                                 fill
                                 className="object-cover"
                                 sizes="48px"
-                                unoptimized={avatarSrc.startsWith("blob:")}
+                                unoptimized={image.startsWith("blob:")}
                             />
                         ) : (
                             <span className="flex h-full w-full items-center justify-center bg-primary text-white text-sm font-bold">
@@ -177,7 +185,6 @@ export default function UserMenu({ isTransparent = false }: UserMenuProps) {
                         <p className="truncate text-xs text-text-muted">{email}</p>
                     </div>
 
-                    {/* Hidden file input */}
                     <input
                         ref={fileRef}
                         type="file"
@@ -189,6 +196,14 @@ export default function UserMenu({ isTransparent = false }: UserMenuProps) {
 
                 {/* Menu items */}
                 <div className="p-2 space-y-0.5">
+                    <button
+                        onClick={() => { setOpen(false); openEditProfile(); }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-muted hover:bg-primary/8 hover:text-primary transition-colors duration-150 cursor-pointer"
+                    >
+                        <FaPen size={13} />
+                        <span>Edit Profile</span>
+                    </button>
+
                     <button
                         onClick={() => { fileRef.current?.click(); }}
                         className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-muted hover:bg-primary/8 hover:text-primary transition-colors duration-150 cursor-pointer"

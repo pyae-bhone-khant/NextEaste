@@ -5,13 +5,16 @@ import Button from "../ui/Button"
 import ThemeToggle from "../ui/ThemeToggle"
 import UserMenu from "./UserMenu"
 import { HiOutlineMenuAlt3 } from "react-icons/hi"
-import { IoClose, IoLogInOutline } from "react-icons/io5"
-import { FaHome } from "react-icons/fa"
+import { IoClose, IoLogInOutline, IoLogOutOutline } from "react-icons/io5"
+import { FaHome, FaPen } from "react-icons/fa"
 import { useState } from "react"
 import { useAuthModal } from "@/store/useAuthModelStore"
 import { useCreatePropertyModalStore } from "@/store/createPropertyModalStore"
-import { useSession } from "@/lib/auth-client"
-import { usePathname } from "next/navigation"
+import { useEditProfileModalStore } from "@/store/useEditProfileModalStore"
+import { useUserProfileStore } from "@/store/useUserProfileStore"
+import { useSession, signOut } from "@/lib/auth-client"
+import { usePathname, useRouter } from "next/navigation"
+import Image from "next/image"
 import clsx from "clsx"
 
 interface NavbarProps {
@@ -29,9 +32,19 @@ export default function Navbar({ variant = "transparent" }: NavbarProps) {
     const [isOpen, setIsOpen] = useState(false)
     const isTransparent = variant === "transparent"
     const pathname = usePathname()
+    const router = useRouter()
     const { open: openCreateModal } = useCreatePropertyModalStore()
+    const { open: openEditProfile } = useEditProfileModalStore()
     const { openLogin } = useAuthModal()
     const { data: session, isPending } = useSession()
+    const { profile, clear } = useUserProfileStore()
+
+    const handleMobileLogout = async () => {
+        setIsOpen(false)
+        clear()
+        await signOut()
+        router.refresh()
+    }
 
     // Returns true when the link's href matches the current page
     const isActive = (href: string) =>
@@ -188,48 +201,90 @@ export default function Navbar({ variant = "transparent" }: NavbarProps) {
                                     isTransparent ? "border-white/10" : "border-border"
                                 )}
                             >
-                                {/* Logged-in mobile view */}
-                                {!isPending && session && (
+                                {/* ── Logged-in mobile view ──────────── */}
+                                {!isPending && session && profile && (
                                     <>
-                                        {/* Mini user card */}
+                                        {/* User card with real avatar */}
                                         <div className={clsx(
                                             "flex items-center gap-3 rounded-xl px-3 py-2.5",
-                                            isTransparent ? "bg-white/5" : "bg-background"
+                                            isTransparent ? "bg-white/8" : "bg-background"
                                         )}>
-                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white text-xs font-bold shrink-0">
-                                                {session.user.name?.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
+                                            {/* Avatar */}
+                                            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-primary/25">
+                                                {profile.image ? (
+                                                    <Image
+                                                        src={profile.image}
+                                                        alt={profile.name}
+                                                        fill
+                                                        className="object-cover"
+                                                        sizes="40px"
+                                                        unoptimized={profile.image.startsWith("blob:")}
+                                                    />
+                                                ) : (
+                                                    <span className="flex h-full w-full items-center justify-center bg-primary text-xs font-bold text-white">
+                                                        {profile.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
+                                                    </span>
+                                                )}
                                             </div>
-                                            <div className="min-w-0">
+                                            {/* Name + email */}
+                                            <div className="min-w-0 flex-1">
                                                 <p className={clsx("truncate text-sm font-semibold", isTransparent ? "text-white" : "text-text")}>
-                                                    {session.user.name}
+                                                    {profile.name}
                                                 </p>
                                                 <p className={clsx("truncate text-xs", isTransparent ? "text-white/60" : "text-text-muted")}>
-                                                    {session.user.email}
+                                                    {profile.email}
                                                 </p>
                                             </div>
                                         </div>
 
-                                        <Button
-                                            onClick={() => { setIsOpen(false); openCreateModal(); }}
-                                            icon={<FaHome size={14} />}
-                                            variant="outline"
-                                            fullWidth
+                                        {/* Edit Profile */}
+                                        <button
+                                            onClick={() => { setIsOpen(false); openEditProfile(); }}
+                                            className={clsx(
+                                                "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150 cursor-pointer",
+                                                isTransparent
+                                                    ? "text-white/70 hover:bg-white/10 hover:text-white"
+                                                    : "text-text-muted hover:bg-primary/8 hover:text-primary"
+                                            )}
                                         >
-                                            Add Property
-                                        </Button>
+                                            <FaPen size={13} />
+                                            <span>Edit Profile</span>
+                                        </button>
+
+                                        {/* Add Property */}
+                                        <button
+                                            onClick={() => { setIsOpen(false); openCreateModal(); }}
+                                            className={clsx(
+                                                "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150 cursor-pointer",
+                                                isTransparent
+                                                    ? "text-white/70 hover:bg-white/10 hover:text-white"
+                                                    : "text-text-muted hover:bg-primary/8 hover:text-primary"
+                                            )}
+                                        >
+                                            <FaHome size={14} />
+                                            <span>Add Property</span>
+                                        </button>
+
+                                        {/* Logout */}
+                                        <button
+                                            onClick={handleMobileLogout}
+                                            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10 transition-colors duration-150 cursor-pointer"
+                                        >
+                                            <IoLogOutOutline size={16} />
+                                            <span>Log out</span>
+                                        </button>
                                     </>
                                 )}
 
-                                {/* Logged-out mobile view */}
+                                {/* ── Logged-out mobile view ─────────── */}
                                 {!isPending && !session && (
-                                    <Button
+                                    <button
                                         onClick={() => { setIsOpen(false); openLogin(); }}
-                                        icon={<IoLogInOutline size={16} />}
-                                        variant="primary"
-                                        fullWidth
+                                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors cursor-pointer"
                                     >
+                                        <IoLogInOutline size={16} />
                                         Sign In
-                                    </Button>
+                                    </button>
                                 )}
                             </div>
                         </div>
