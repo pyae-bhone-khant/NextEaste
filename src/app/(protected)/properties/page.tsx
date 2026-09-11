@@ -5,6 +5,7 @@ import { getUserProperties } from "@/sever-action/get-user-Property";
 import Image from "next/image";
 import Link from "next/link";
 import UserPropertyCard from "@/components/property/UserPropertyCard";
+import { Property } from "@/types/property";
 
 export default function PropertiesPage() {
   return (
@@ -41,7 +42,7 @@ async function PropertyContent() {
 
   return (
     <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-      {properties.map((property) => (
+      {properties.map((property: Property) => (
         <UserPropertyCard key={property.id} property={property} />
       ))}
     </div>

@@ -123,7 +123,7 @@ export async function POST(req : NextRequest) {
     const imageData : CloudinaryUploadResult = await uploadToCloudinary(image); 
 
     await prisma.property.create({
-        data : { 
+        data : {
             title : title as string,
             description : description as string,
             propertyType : propertyType as string,
@@ -134,9 +134,8 @@ export async function POST(req : NextRequest) {
             parkingSpace : Number(parkingSpaces),
             location : location as string,
             address : address as string,
-            area :  area ? Number(area) : null,
             image: imageData.secure_url,
-            ownerId : currentUser.id,
+            ownerId : String(currentUser.id),
             type: propertyType as string,
             status: "available"
         }

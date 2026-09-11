@@ -6,12 +6,12 @@ export interface Property {
     address?: string
     price: number
     type: string
-    propertyType?: string
-    listingType?: string
+    propertyType: string
+    listingType: string
     status: string
     bedrooms: number
     bathrooms: number
     area: number | null
     image: string
     createdAt?: string | Date
-}
+}
